@@ -6,7 +6,7 @@ name: csi-s3
 version: 0.43.3
 keywords:
   - s3
-home: https://github.com/yandex-cloud/k8s-csi-s3
+home: https://github.com/smou/k8s-csi-s3
 sources:
-  - https://github.com/yandex-cloud/k8s-csi-s3/deploy/helm
-icon: https://raw.githubusercontent.com/yandex-cloud/geesefs/master/doc/geesefs.png
+  - https://github.com/smou/k8s-csi-s3/deploy/helm
+icon: https://raw.githubusercontent.com/smou/geesefs/master/doc/geesefs.png

@@ -16,7 +16,7 @@ import (
 	"github.com/mitchellh/go-ps"
 	"k8s.io/kubernetes/pkg/util/mount"
 
-	"github.com/yandex-cloud/k8s-csi-s3/pkg/s3"
+	"github.com/smou/k8s-csi-s3/pkg/s3"
 )
 
 // Mounter interface which can be implemented
@@ -26,12 +26,12 @@ type Mounter interface {
 }
 
 const (
-	s3fsMounterType     = "s3fs"
-	geesefsMounterType  = "geesefs"
-	rcloneMounterType   = "rclone"
-	TypeKey             = "mounter"
-	BucketKey           = "bucket"
-	OptionsKey          = "options"
+	s3fsMounterType    = "s3fs"
+	geesefsMounterType = "geesefs"
+	rcloneMounterType  = "rclone"
+	TypeKey            = "mounter"
+	BucketKey          = "bucket"
+	OptionsKey         = "options"
 )
 
 // New returns a new mounter depending on the mounterType parameter
@@ -86,8 +86,8 @@ func SystemdUnmount(volumeID string) (bool, error) {
 		return false, err
 	}
 	defer conn.Close()
-	unitName := "geesefs-"+systemd.PathBusEscape(volumeID)+".service"
-	units, err := conn.ListUnitsByNames([]string{ unitName })
+	unitName := "geesefs-" + systemd.PathBusEscape(volumeID) + ".service"
+	units, err := conn.ListUnitsByNames([]string{unitName})
 	glog.Errorf("Got %v", units)
 	if err != nil {
 		glog.Errorf("Failed to list systemd unit by name %v: %v", unitName, err)

@@ -1,5 +1,5 @@
 helm_chart:
-  name: cr.yandex/crp9ftr22d26age3hulg/yandex-cloud/csi-s3/csi-s3
+  name: cr.yandex/crp9ftr22d26age3hulg/smou/csi-s3/csi-s3
   tag: 0.43.3
 requirements:
   k8s_version: ">=1.13"
@@ -77,8 +77,8 @@ user_values:
       en: GeeseFS mounting options
       ru: Опции монтирования GeeseFS
     description:
-      en: The GeeseFS mount options to use. For a complete list and description of the options, see the output of the`geesefs --help` command (https://github.com/yandex-cloud/geesefs).
-      ru: Опции монтирования GeeseFS. Полный перечень и описание опций смотрите в выводе команды `geesefs --help` (https://github.com/yandex-cloud/geesefs).
+      en: The GeeseFS mount options to use. For a complete list and description of the options, see the output of the`geesefs --help` command (https://github.com/smou/geesefs).
+      ru: Опции монтирования GeeseFS. Полный перечень и описание опций смотрите в выводе команды `geesefs --help` (https://github.com/smou/geesefs).
     string_value:
       default_value: "--memory-limit 1000 --dir-mode 0777 --file-mode 0666"
   - name: storageClass.reclaimPolicy

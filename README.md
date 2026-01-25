@@ -12,10 +12,10 @@ This is a Container Storage Interface ([CSI](https://github.com/container-storag
 
 ### Helm chart
 
-Helm chart is published at `https://yandex-cloud.github.io/k8s-csi-s3`:
+Helm chart is published at `https://smou.github.io/k8s-csi-s3`:
 
 ```
-helm repo add yandex-s3 https://yandex-cloud.github.io/k8s-csi-s3/charts
+helm repo add yandex-s3 https://smou.github.io/k8s-csi-s3/charts
 
 helm install csi-s3 yandex-s3/csi-s3
 ```
@@ -56,14 +56,14 @@ kubectl create -f csi-s3.yaml
 If you're upgrading from <= 0.35.5 - delete all resources from `attacher.yaml`:
 
 ```
-wget https://raw.githubusercontent.com/yandex-cloud/k8s-csi-s3/v0.35.5/deploy/kubernetes/attacher.yaml
+wget https://raw.githubusercontent.com/smou/k8s-csi-s3/v0.35.5/deploy/kubernetes/attacher.yaml
 kubectl delete -f attacher.yaml
 ```
 
 If you're upgrading from <= 0.40.6 - delete all resources from old `provisioner.yaml`:
 
 ```bash
-wget -O old-provisioner.yaml https://raw.githubusercontent.com/yandex-cloud/k8s-csi-s3/v0.40.6/deploy/kubernetes/provisioner.yaml
+wget -O old-provisioner.yaml https://raw.githubusercontent.com/smou/k8s-csi-s3/v0.40.6/deploy/kubernetes/provisioner.yaml
 kubectl delete -f old-provisioner.yaml
 ```
 
@@ -145,7 +145,7 @@ To do that you should omit `storageClassName` in the `PersistentVolumeClaim` and
 
 ### Mounter
 
-We **strongly recommend** to use the default mounter which is [GeeseFS](https://github.com/yandex-cloud/geesefs).
+We **strongly recommend** to use the default mounter which is [GeeseFS](https://github.com/smou/geesefs).
 
 However there is also support for two other backends: [s3fs](https://github.com/s3fs-fuse/s3fs-fuse) and [rclone](https://rclone.org/commands/rclone_mount).
 
@@ -155,7 +155,7 @@ As S3 is not a real file system there are some limitations to consider here.
 Depending on what mounter you are using, you will have different levels of POSIX compability.
 Also depending on what S3 storage backend you are using there are not always [consistency guarantees](https://github.com/gaul/are-we-consistent-yet#observed-consistency).
 
-You can check POSIX compatibility matrix here: https://github.com/yandex-cloud/geesefs#posix-compatibility-matrix.
+You can check POSIX compatibility matrix here: https://github.com/smou/geesefs#posix-compatibility-matrix.
 
 #### GeeseFS
 
@@ -204,7 +204,7 @@ kubectl logs -l app=csi-s3 -c csi-s3
 This project can be built like any other go application.
 
 ```bash
-go get -u github.com/yandex-cloud/k8s-csi-s3
+go get -u github.com/smou/k8s-csi-s3
 ```
 
 ### Build executable
