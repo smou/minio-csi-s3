@@ -17,6 +17,7 @@ VERSION=1.0.0
 NAME=minio-csi-s3
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+PKG=github.com/smou/k8s-csi-s3
 
 LDFLAGS?="-w -s -X ${PKG}/pkg/driver/version.driverVersion=${VERSION} \
 -X ${PKG}/pkg/driver/version.driverName=${NAME} \
@@ -25,7 +26,7 @@ LDFLAGS?="-w -s -X ${PKG}/pkg/driver/version.driverVersion=${VERSION} \
 
 GOOS=$(shell go env GOOS)
 CGO_ENABLED=0
-GOFLAGS := -a -ldflags ${LDFLAGS}
+GOFLAGS := -a
 GOENV := CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=amd64
 
 BINARY_NAME := s3driver
@@ -44,7 +45,7 @@ test:
 build: clean
 	@echo "==> Building binary"
 	mkdir -p $(OUTPUT_DIR)
-	${GOENV} go build ${GOFLAGS} -o ${OUTPUT_DIR}/${BINARY_NAME} ${SRC_DIR}
+	${GOENV} go build ${GOFLAGS} -ldflags ${LDFLAGS} -o ${OUTPUT_DIR}/${BINARY_NAME} ${SRC_DIR}
 clean:
 	@echo "==> Cleaning"
 	go clean -r -x

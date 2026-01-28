@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 
@@ -36,7 +37,7 @@ func init() {
 var (
 	endpoint    = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
 	nodeID      = flag.String("nodeid", "controller", "kubernetes node id")
-	mountBinary = flag.String("mountBinary", "mount", "s3 mount binary path")
+	mountBinary = flag.String("mountBinary", "", "s3 mount binary path")
 )
 
 func main() {
@@ -80,15 +81,17 @@ func runDriver(config *config.DriverConfig, ctx context.Context) {
 func preflightChecks(config *config.DriverConfig) error {
 	if config.MountBinary != "" {
 		if _, err := os.Stat(config.MountBinary); os.IsNotExist(err) {
-			return fmt.Errorf("mount binary not found at %s: %v", config.MountBinary, err)
+			return fmt.Errorf("mount binary not found in $PATH at %s: %v", config.MountBinary, err)
 		}
 	} else {
-		if _, err := os.Stat("mount"); os.IsNotExist(err) {
-			return fmt.Errorf("mount binary not found: %v", err)
+		if _, err := exec.LookPath("mount"); os.IsNotExist(err) {
+			return fmt.Errorf("mount binary not found in $PATH: %v", err)
 		}
 	}
-	if _, err := os.Stat("mountpoint-s3"); os.IsNotExist(err) {
-		return fmt.Errorf("mountpoint-s3 binary not found: %v", err)
+	if _, err := exec.LookPath("mountpoint-s3"); os.IsNotExist(err) {
+		if _, err := exec.LookPath("mount-s3"); os.IsNotExist(err) {
+			return fmt.Errorf("mountpoint-s3 or mount-s3 binary not found in $PATH: %v", err)
+		}
 	}
 	return nil
 }
