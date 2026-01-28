@@ -19,17 +19,26 @@ type BucketStore interface {
 }
 
 type StoreConfig struct {
-	Endpoint  string
-	Region    string
-	AccessKey string
-	SecretKey string
+	EndpointURL string
+	Region      string
+	AccessKey   string
+	SecretKey   string
 }
 
 func (c *StoreConfig) UseTLS() bool {
-	u, err := url.Parse(c.Endpoint)
-	if err != nil {
+	u, err := url.Parse(c.EndpointURL)
+	if err != nil || u.Host == "" {
 		klog.Warningf("Error determine TLS: %v", err)
 		return true
 	}
 	return u.Scheme == "https"
+}
+
+func (c *StoreConfig) Endpoint() string {
+	u, err := url.Parse(c.EndpointURL)
+	if err != nil || u.Host == "" {
+		klog.Warningf("Error parse EndpointURL: %v", err)
+		return c.EndpointURL
+	}
+	return u.Host
 }

@@ -17,13 +17,14 @@ const (
 	defaulBucketPrefix = "pvc-"
 
 	var_endpoint       = "MINIO_ENDPOINT"
+	var_usetls         = "MINIO_USETLS"
 	var_region         = "MINIO_REGION"
 	var_bucketprefix   = "MINIO_BUCKET_PREFIX"
-	var_accessKey      = "MINIO_ACCESSKEY"
-	var_secretKey      = "MINIO_SECRETKEY"
-	var_namespace      = "NAMESPACE"
-	var_configmap_name = "CONFIGMAP_NAME"
-	var_secret_name    = "SECRET_NAME"
+	var_accessKey      = "MINIO_ACCESSKEY" // secret
+	var_secretKey      = "MINIO_SECRETKEY" // secret
+	var_namespace      = "NAMESPACE"       // env
+	var_configmap_name = "CONFIGMAP_NAME"  // env
+	var_secret_name    = "SECRET_NAME"     // env
 )
 
 type DriverConfig struct {
@@ -38,6 +39,7 @@ type DriverConfig struct {
 
 type S3Config struct {
 	Endpoint     string
+	UseTLS       bool
 	Region       string
 	BucketPrefix string
 }
@@ -123,6 +125,7 @@ func LoadControllerConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 	data := cm.Data
 	cfg := &S3Config{
 		Endpoint:     data[var_endpoint],
+		UseTLS:       data[var_endpoint] == "true",
 		Region:       data[var_region],
 		BucketPrefix: data[var_bucketprefix],
 	}

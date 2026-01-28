@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -34,8 +35,8 @@ func init() {
 
 var (
 	endpoint    = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
-	nodeID      = flag.String("nodeid", "", "node id")
-	mountBinary = flag.String("mountBinary", "/usr/bin/mountpoint-s3", "s3 mount binary path")
+	nodeID      = flag.String("nodeid", "controller", "kubernetes node id")
+	mountBinary = flag.String("mountBinary", "mount", "s3 mount binary path")
 )
 
 func main() {
@@ -55,10 +56,17 @@ func main() {
 	config.Endpoint = *endpoint
 	config.NodeID = *nodeID
 	config.MountBinary = *mountBinary
+	if err := preflightChecks(config); err != nil {
+		log.Fatalf("Preflight checks failed: %v", err)
+	}
+	runDriver(config, ctx)
+	os.Exit(0)
+}
 
+func runDriver(config *config.DriverConfig, ctx context.Context) {
 	driver, err := driver.NewDriver(config)
 	if err != nil {
-		log.Fatalf("Error run Driver: %v", err)
+		log.Fatalf("Error init Driver: %v", err)
 	}
 	go func() {
 		if err := driver.Run(); err != nil {
@@ -67,5 +75,20 @@ func main() {
 	}()
 	<-ctx.Done()
 	driver.Stop()
-	os.Exit(0)
+}
+
+func preflightChecks(config *config.DriverConfig) error {
+	if config.MountBinary != "" {
+		if _, err := os.Stat(config.MountBinary); os.IsNotExist(err) {
+			return fmt.Errorf("mount binary not found at %s: %v", config.MountBinary, err)
+		}
+	} else {
+		if _, err := os.Stat("mount"); os.IsNotExist(err) {
+			return fmt.Errorf("mount binary not found: %v", err)
+		}
+	}
+	if _, err := os.Stat("mountpoint-s3"); os.IsNotExist(err) {
+		return fmt.Errorf("mountpoint-s3 binary not found: %v", err)
+	}
+	return nil
 }

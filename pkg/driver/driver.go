@@ -94,10 +94,10 @@ func (d *Driver) Run() error {
 	// }
 	mounter := mount.NewMountUtilsProvider(d.Config.MountBinary)
 	store, err := minio.NewStore(&store.StoreConfig{
-		Endpoint:  d.Config.S3.Endpoint,
-		Region:    d.Config.S3.Region,
-		AccessKey: d.Config.S3Credentials.AccessKey,
-		SecretKey: d.Config.S3Credentials.SecretKey,
+		EndpointURL: d.Config.S3.Endpoint,
+		Region:      d.Config.S3.Region,
+		AccessKey:   d.Config.S3Credentials.AccessKey,
+		SecretKey:   d.Config.S3Credentials.SecretKey,
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating BucketStore: %w", err)

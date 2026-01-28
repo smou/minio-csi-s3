@@ -6,6 +6,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/smou/k8s-csi-s3/pkg/driver/store"
+	"k8s.io/klog/v2"
 )
 
 type Store struct {
@@ -15,7 +16,7 @@ type Store struct {
 
 func NewStore(config *store.StoreConfig) (*Store, error) {
 
-	client, err := minio.New(config.Endpoint, &minio.Options{
+	client, err := minio.New(config.Endpoint(), &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKey, config.SecretKey, ""),
 		Secure: config.UseTLS(),
 		Region: config.Region,
@@ -30,7 +31,7 @@ func NewStore(config *store.StoreConfig) (*Store, error) {
 }
 
 func (s *Store) BucketExists(ctx context.Context, name string) (bool, error) {
-
+	klog.V(4).Infof("BucketExists? '%s'", name)
 	exists, err := s.Client.BucketExists(ctx, name)
 	if err != nil {
 		return false, err
@@ -39,7 +40,7 @@ func (s *Store) BucketExists(ctx context.Context, name string) (bool, error) {
 }
 
 func (s *Store) CreateBucket(ctx context.Context, name string) error {
-
+	klog.V(4).Infof("CreateBucket '%s'", name)
 	exists, err := s.BucketExists(ctx, name)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func (s *Store) CreateBucket(ctx context.Context, name string) error {
 }
 
 func (s *Store) DeleteBucket(ctx context.Context, name string) error {
-
+	klog.V(4).Infof("DeleteBucket '%s'", name)
 	exists, err := s.BucketExists(ctx, name)
 	if err != nil {
 		return err
