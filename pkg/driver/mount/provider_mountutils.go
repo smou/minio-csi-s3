@@ -58,17 +58,17 @@ func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error 
 	options := []string{
 		"--endpoint-url", req.Endpoint,
 		"--region", req.Region,
-		"--force-path-style",
-		"--incremental-upload",
+		"--force-path-style",   // Force path-style addressing
+		"--incremental-upload", // Enable incremental uploads and support for appending to existing objects
+		"--allow-other",        // FUSE option to Allow other users, including root, to access file system
 	}
 	if req.GID != "" {
 		options = append(options,
-			"--gid", req.GID,
-			"--dir-mode", "0775",
-			"--file-mode", "0664",
+			"--gid", req.GID, // Owner GID [default: current user's GID]
+			"--dir-mode", "0775", // Set the permissions for directories (default: 0775)
+			"--file-mode", "0664", // Set the permissions for files (default: 0664)
 		)
 	}
-	// --gid Owner GID [default: current user's GID]
 	// --allow-delete Allow delete operations on file system
 	// --allow-overwrite Allow overwrite operations on file system
 	if req.ReadOnly {

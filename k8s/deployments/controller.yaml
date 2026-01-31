@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: csi-s3-controller
+        app.kubernetes.io/part-of: minio-csi-s3
     spec:
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
