@@ -67,7 +67,10 @@ func (srv *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVo
 
 	capacityBytes := int64(req.GetCapacityRange().GetRequiredBytes())
 	volumeID := sanitizeVolumeID(req.GetName())
-	bucketName := fmt.Sprintf("%s-%s", srv.BucketPrefix, volumeID)
+	bucketName := volumeID
+	if srv.BucketPrefix != "" {
+		bucketName = fmt.Sprintf("%s-%s", srv.BucketPrefix, volumeID)
+	}
 
 	// Check arguments
 	if len(bucketName) == 0 {

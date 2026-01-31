@@ -13,11 +13,9 @@ import (
 )
 
 const (
-	defaultRegion      = "us-east-1"
-	defaulBucketPrefix = "pvc-"
+	defaultRegion = "us-east-1"
 
 	var_endpoint       = "MINIO_ENDPOINT"
-	var_usetls         = "MINIO_USETLS"
 	var_region         = "MINIO_REGION"
 	var_bucketprefix   = "MINIO_BUCKET_PREFIX"
 	var_accessKey      = "MINIO_ACCESSKEY" // secret
@@ -142,10 +140,6 @@ func LoadControllerConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 	if cfg.Region == "" {
 		klog.Infof("%v missing in ConfigMap. Use Default: %v", var_region, defaultRegion)
 		cfg.Region = defaultRegion
-	}
-	if cfg.BucketPrefix == "" {
-		klog.Infof("%v missing in ConfigMap. Use Default: %v", var_bucketprefix, defaulBucketPrefix)
-		cfg.BucketPrefix = defaulBucketPrefix
 	}
 	return cfg, nil
 }
