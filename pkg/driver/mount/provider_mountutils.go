@@ -62,7 +62,11 @@ func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error 
 		"--incremental-upload",
 	}
 	if req.GID != "" {
-		options = append(options, "--gid", req.GID)
+		options = append(options,
+			"--gid", req.GID,
+			"--dir-mode", "0775",
+			"--file-mode", "0664",
+		)
 	}
 	// --gid Owner GID [default: current user's GID]
 	// --allow-delete Allow delete operations on file system

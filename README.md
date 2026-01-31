@@ -3,6 +3,54 @@
 This is a Container Storage Interface ([CSI](https://github.com/container-storage-interface/spec/blob/master/spec.md)) for S3 (or S3 compatible) storage. This can dynamically allocate buckets and mount them via a fuse mount into any container.
 It implements the same mouting mechanism as the csi driver from aws and is not using any third party fs implementation (e.g. s3-fs)
 
+## Minio Access Key Policy
+
+As the driver will create new buckets for each pvc it is recommended to configure a appropriate policy to ensure proper functionality
+NOTE: Resources must be adapted if you configure Bucketprefix
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListAllMyBuckets",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:CreateBucket",
+                "s3:DeleteBucket",
+                "s3:GetBucketVersioning"
+            ],
+            "Resource": [
+                "arn:aws:s3:::pvc-*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:AbortMultipartUpload",
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:ListBucketMultipartUploads",
+                "s3:ListMultipartUploadParts",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::pvc-*/*"
+            ]
+        }
+    ]
+}
+```
+
 ## Kubernetes installation
 
 ### Requirements
@@ -115,17 +163,6 @@ kubectl create -f examples/storageclass.yaml
 
     If the pod can start, everything should be working.
 
-1. Test the mount
-
-    ```bash
-    $ kubectl exec -ti csi-s3-test-nginx bash
-    $ mount | grep fuse
-    pvc-035763df-0488-4941-9a34-f637292eb95c: on /usr/share/nginx/html/s3 type fuse.geesefs (rw,nosuid,nodev,relatime,user_id=65534,group_id=0,default_permissions,allow_other)
-    $ touch /usr/share/nginx/html/s3/hello_world
-    ```
-
-If something does not work as expected, check the troubleshooting section below.
-
 ## Additional configuration
 
 ### Bucket
@@ -139,19 +176,14 @@ If you want to mount a pre-existing bucket or prefix within a pre-existing bucke
 
 To do that you should omit `storageClassName` in the `PersistentVolumeClaim` and manually create a `PersistentVolume` with a matching `claimRef`, like in the following example: [deploy/kubernetes/examples/pvc-manual.yaml](deploy/kubernetes/examples/pvc-manual.yaml).
 
+### Dynamic Provisioning
+
+If a pvc resources get created a new bucket will be created on minio.
+
 ### Mounter
 
-We **strongly recommend** to use the default mounter which is [GeeseFS](https://github.com/smou/geesefs).
-
-However there is also support for two other backends: [s3fs](https://github.com/s3fs-fuse/s3fs-fuse) and [rclone](https://rclone.org/commands/rclone_mount).
-
-The mounter can be set as a parameter in the storage class. You can also create multiple storage classes for each mounter if you like.
-
-As S3 is not a real file system there are some limitations to consider here.
-Depending on what mounter you are using, you will have different levels of POSIX compability.
-Also depending on what S3 storage backend you are using there are not always [consistency guarantees](https://github.com/gaul/are-we-consistent-yet#observed-consistency).
-
-You can check POSIX compatibility matrix here: https://github.com/smou/geesefs#posix-compatibility-matrix.
+For mount s3 bucket to local filesystem the AWS ([mountpoint-s3](https://github.com/awslabs/mountpoint-s3)) will be used to provide almost same performance.
+Any third party filesystem implementations are not required even the code is prepared to add different bucket stores and mounters.
 
 ## Troubleshooting
 
