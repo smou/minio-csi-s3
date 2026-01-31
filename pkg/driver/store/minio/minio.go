@@ -65,6 +65,7 @@ func (s *Store) DeleteBucket(ctx context.Context, name string) error {
 	if !exists {
 		return nil
 	}
-
-	return s.Client.RemoveBucket(ctx, name)
+	return s.Client.RemoveBucketWithOptions(ctx, name, minio.RemoveBucketOptions{
+		ForceDelete: true,
+	})
 }
