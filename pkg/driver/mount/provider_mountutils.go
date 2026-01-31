@@ -19,6 +19,7 @@ type MountUtilsProvider struct {
 }
 
 func NewMountUtilsProvider(binary string) *MountUtilsProvider {
+	klog.Infof("Init Mounter at %s", binary)
 	return &MountUtilsProvider{
 		Mounter: mount.New(""),
 		Binary:  binary,
@@ -69,8 +70,8 @@ func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error 
 		req.TargetPath,
 	}
 	options = append(options, args...)
-
-	cmd := ExecCommand(ctx, p.Binary, args...)
+	klog.Infof("Mount options: %+v", options)
+	cmd := ExecCommand(ctx, p.Binary, options...)
 
 	// Credentials über ENV (best practice)
 	cmd.Env = append(os.Environ(),
@@ -86,6 +87,7 @@ func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error 
 			string(out),
 		)
 	}
+	klog.Infof("%s", string(out))
 
 	return nil
 }

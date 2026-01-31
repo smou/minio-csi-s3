@@ -15,7 +15,7 @@ type Store struct {
 }
 
 func NewStore(config *store.StoreConfig) (*Store, error) {
-
+	klog.Infof("Init MinioStore | '%s' | '%s'", config.EndpointURL, config.Region)
 	client, err := minio.New(config.Endpoint(), &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKey, config.SecretKey, ""),
 		Secure: config.UseTLS(),
@@ -31,7 +31,7 @@ func NewStore(config *store.StoreConfig) (*Store, error) {
 }
 
 func (s *Store) BucketExists(ctx context.Context, name string) (bool, error) {
-	klog.V(4).Infof("BucketExists? '%s'", name)
+	klog.Infof("BucketExists? '%s'", name)
 	exists, err := s.Client.BucketExists(ctx, name)
 	if err != nil {
 		return false, err
@@ -40,7 +40,7 @@ func (s *Store) BucketExists(ctx context.Context, name string) (bool, error) {
 }
 
 func (s *Store) CreateBucket(ctx context.Context, name string) error {
-	klog.V(4).Infof("CreateBucket '%s'", name)
+	klog.Infof("CreateBucket '%s'", name)
 	exists, err := s.BucketExists(ctx, name)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (s *Store) CreateBucket(ctx context.Context, name string) error {
 }
 
 func (s *Store) DeleteBucket(ctx context.Context, name string) error {
-	klog.V(4).Infof("DeleteBucket '%s'", name)
+	klog.Infof("DeleteBucket '%s'", name)
 	exists, err := s.BucketExists(ctx, name)
 	if err != nil {
 		return err

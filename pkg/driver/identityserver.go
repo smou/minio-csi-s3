@@ -22,6 +22,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/smou/k8s-csi-s3/pkg/config"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"k8s.io/klog/v2"
 )
 
 type IdentityServer struct {
@@ -32,6 +33,7 @@ type IdentityServer struct {
 }
 
 func NewIdentityServer(meta config.Meta) *IdentityServer {
+	klog.Infof("Initializing IdentityServer...")
 	return &IdentityServer{
 		DriverName:    meta.DriverName,
 		DriverVersion: meta.DriverVersion,

@@ -28,20 +28,25 @@ import (
 
 	"github.com/smou/k8s-csi-s3/pkg/config"
 	"github.com/smou/k8s-csi-s3/pkg/driver"
+	"k8s.io/klog/v2"
 )
 
 func init() {
-	flag.Set("logtostderr", "true")
+
 }
 
 var (
 	endpoint    = flag.String("endpoint", "unix://csi/csi.sock", "CSI endpoint")
 	nodeID      = flag.String("nodeid", "controller", "kubernetes node id")
-	mountBinary = flag.String("mountBinary", "/bin/mount", "s3 mount binary path")
+	mountBinary = flag.String("mountBinary", "/usr/local/bin/mount-s3", "s3 mount binary path")
 )
 
 func main() {
+	klog.InitFlags(nil)
+
+	flag.Set("logtostderr", "true")
 	flag.Parse()
+	defer klog.Flush()
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -84,13 +89,8 @@ func preflightChecks(config *config.DriverConfig) error {
 			return fmt.Errorf("mount binary not found in $PATH at %s: %v", config.MountBinary, err)
 		}
 	} else {
-		if _, err := exec.LookPath("mount"); os.IsNotExist(err) {
-			return fmt.Errorf("mount binary not found in $PATH: %v", err)
-		}
-	}
-	if _, err := exec.LookPath("mountpoint-s3"); os.IsNotExist(err) {
 		if _, err := exec.LookPath("mount-s3"); os.IsNotExist(err) {
-			return fmt.Errorf("mountpoint-s3 or mount-s3 binary not found in $PATH: %v", err)
+			return fmt.Errorf("mount-s3 binary not found in $PATH: %v", err)
 		}
 	}
 	return nil

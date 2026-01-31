@@ -55,6 +55,7 @@ type Meta struct {
 }
 
 func InitConfig(ctx context.Context) (*DriverConfig, error) {
+	klog.Infof("Initializing Config...")
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, fmt.Errorf("cannot create in-cluster config: %w", err)
@@ -89,6 +90,10 @@ func InitConfig(ctx context.Context) (*DriverConfig, error) {
 		return nil, fmt.Errorf("cannot load secret %v: %w", secret_name, err)
 	}
 	v := version.GetVersion()
+	klog.Infof("Config initialized.")
+	klog.V(4).Infof("Namespace: %v", namespace)
+	klog.V(4).Infof("S3: %v", s3Config)
+	klog.V(4).Infof("S3 Cred: %v", s3Creds)
 	return &DriverConfig{
 		KubernetesVersion: kubernetesVersion,
 		S3:                *s3Config,
@@ -116,6 +121,7 @@ func kubernetesVersion(clientset *kubernetes.Clientset) (string, error) {
 }
 
 func LoadControllerConfigMap(ctx context.Context, client *kubernetes.Clientset, namespace, name string) (*S3Config, error) {
+	klog.Infof("Initializing Configmap '%s' in namespace %s", name, namespace)
 	cm, err := client.CoreV1().
 		ConfigMaps(namespace).
 		Get(ctx, name, v1.GetOptions{})
@@ -145,6 +151,7 @@ func LoadControllerConfigMap(ctx context.Context, client *kubernetes.Clientset, 
 }
 
 func LoadControllerCredentialsFromSecret(ctx context.Context, client kubernetes.Clientset, namespace, name string) (*S3Credentials, error) {
+	klog.Infof("Initializing Secret '%s' in namespace %s", name, namespace)
 	sec, err := client.CoreV1().
 		Secrets(namespace).
 		Get(ctx, name, v1.GetOptions{})

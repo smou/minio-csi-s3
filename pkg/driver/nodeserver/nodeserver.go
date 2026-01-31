@@ -64,7 +64,7 @@ func (n *NodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCa
 }
 
 func (n *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
-
+	klog.V(4).Infof("NodePublishVolume: called with args %+v", req)
 	if req.GetTargetPath() == "" {
 		return nil, status.Error(codes.InvalidArgument, "targetPath missing")
 	}
@@ -110,7 +110,7 @@ func (n *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublish
 }
 
 func (n *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
-
+	klog.V(4).Infof("NodeUnpublishVolume: called with args %+v", req)
 	if req.GetTargetPath() == "" {
 		return &csi.NodeUnpublishVolumeResponse{}, nil
 	}
@@ -127,12 +127,12 @@ func (n *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpub
 	if err := n.mount.Unmount(ctx, req.TargetPath); err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
-	klog.V(4).Infof("s3: volume %s has been unmounted.", req.VolumeId)
+	klog.V(1).Infof("volume %s has been unmounted.", req.VolumeId)
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
 func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
-
+	klog.V(4).Infof("NodeStageVolume: called with args %+v", req)
 	if req.GetStagingTargetPath() == "" {
 		return nil, status.Error(codes.InvalidArgument, "stagingTargetPath missing")
 	}
@@ -175,13 +175,13 @@ func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolu
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 
-	klog.V(4).Infof("s3: volume %s staged at %s", req.VolumeId, req.StagingTargetPath)
+	klog.V(1).Infof("volume %s staged at %s", req.VolumeId, req.StagingTargetPath)
 
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
 func (n *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-
+	klog.V(4).Infof("NodeUnstageVolume: called with args %+v", req)
 	if req.GetStagingTargetPath() == "" {
 		return &csi.NodeUnstageVolumeResponse{}, nil
 	}
@@ -198,7 +198,7 @@ func (n *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstage
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 
-	klog.V(4).Infof("s3: volume %s unstaged from %s", req.VolumeId, req.StagingTargetPath)
+	klog.V(1).Infof("volume %s unstaged from %s", req.VolumeId, req.StagingTargetPath)
 
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }

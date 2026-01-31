@@ -47,6 +47,7 @@ type Driver struct {
 }
 
 func NewDriver(config *config.DriverConfig) (*Driver, error) {
+	klog.Infof("Initializing CSI Driver...")
 	config.LogVersionInfo()
 
 	if config.Endpoint == "" {
@@ -93,6 +94,7 @@ func (d *Driver) Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to listen on %s: %w", d.Config.Endpoint, err)
 	}
+	klog.Infof("Listening for connections on address: %#v", listener.Addr())
 	// if scheme == "unix" {
 	// 	// Go's `net` package does not support specifying permissions on Unix sockets it creates.
 	// 	// There are two ways to change permissions:
@@ -108,6 +110,7 @@ func (d *Driver) Run() error {
 	// 		return fmt.Errorf("Failed to change permissions on unix socket %s: %v", addr, err)
 	// 	}
 	// }
+	klog.Infof("Initializing components...")
 	mounter := mount.NewMountUtilsProvider(d.Config.MountBinary)
 	store, err := minio.NewStore(&store.StoreConfig{
 		EndpointURL: d.Config.S3.Endpoint,
@@ -139,8 +142,7 @@ func (d *Driver) Run() error {
 	csi.RegisterControllerServer(d.Srv, controllerServer)
 	csi.RegisterNodeServer(d.Srv, nodeServer)
 
-	klog.Infof("Listening for connections on address: %#v", listener.Addr())
-
+	klog.Infof("CSI Driver Ready!")
 	return d.Srv.Serve(listener)
 }
 

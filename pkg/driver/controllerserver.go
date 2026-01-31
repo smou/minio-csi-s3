@@ -44,6 +44,7 @@ type ControllerServer struct {
 }
 
 func NewControllerServer(config *config.DriverConfig, store store.BucketStore) *ControllerServer {
+	klog.Infof("Initializing ControllerServer...")
 	return &ControllerServer{
 		Store:        store,
 		Endpoint:     config.S3.Endpoint,
@@ -73,21 +74,20 @@ func (srv *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVo
 		return nil, status.Error(codes.InvalidArgument, "Name missing in request")
 	}
 
-	klog.V(4).Infof("Got a request to create volume %s", bucketName)
+	klog.Infof("Got a request to create volume %s", bucketName)
 
 	if err := srv.Store.CreateBucket(ctx, bucketName); err != nil {
 		return nil, fmt.Errorf("failed to create bucket %s: %v", bucketName, err)
 	}
 
 	//TODO handle prefixes
-
-	klog.V(4).Infof("create volume %s", bucketName)
 	// DeleteVolume lacks VolumeContext, but publish&unpublish requests have it,
 	// so we don't need to store additional metadata anywhere
 	context := make(map[string]string)
 	// for k, v := range params {
 	// 	context[k] = v
 	// }
+	klog.V(1).Infof("Volume %s created for region %s with capacity %v", volumeID, srv.Region, capacityBytes)
 	context["capacity"] = fmt.Sprintf("%v", capacityBytes)
 	context["region"] = srv.Region
 	return &csi.CreateVolumeResponse{
@@ -100,6 +100,7 @@ func (srv *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVo
 }
 
 func (srv *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
+	klog.V(4).Infof("DeleteVolume: called with args %#v", req)
 	volumeID := req.GetVolumeId()
 	if volumeID == "" {
 		return &csi.DeleteVolumeResponse{}, nil
@@ -110,7 +111,7 @@ func (srv *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVo
 		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
 	}
 
-	klog.V(4).Infof("Deleting volume %s", volumeID)
+	klog.Infof("Deleting volume %s", volumeID)
 
 	if err := srv.Store.DeleteBucket(ctx, volumeID); err != nil && err.Error() != "The specified bucket does not exist" {
 		return nil, status.Errorf(
@@ -120,7 +121,7 @@ func (srv *ControllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVo
 			err,
 		)
 	}
-	klog.V(4).Infof("Bucket %s removed", volumeID)
+	klog.Infof("Bucket %s removed", volumeID)
 	return &csi.DeleteVolumeResponse{}, nil
 }
 
