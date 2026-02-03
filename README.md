@@ -59,30 +59,46 @@ NOTE: Resources must be adapted if you configure Bucketprefix
 * Kubernetes has to allow privileged containers
 * Docker daemon must allow shared mounts (systemd flag `MountFlags=shared`)
 
-### Helm chart
-//TODO Not available yet
-Helm chart is published at `https://smou.github.io/k8s-csi-s3`:
+### Installation with Helm
 
-```
-helm repo add minio-csi-s3 https://smou.github.io/k8s-csi-s3/charts
+[Helm](https://helm.sh) must be installed to use the charts.  Please refer to
+Helm's [documentation](https://helm.sh/docs) to get started.
 
-helm install csi-s3 yandex-s3/csi-s3
-```
+#### Add Helm repository
 
-### Configuration
+`helm repo add minio-csi-s3 https://smou.github.io/charts`
 
-The driver will load the configmap and secret via the kubernetes api and requires related permissions to be able to access the kubernetes resources
+If you had already added this repo earlier, run `helm repo update` to retrieve
+the latest versions of the packages.  You can then run `helm search repo
+minio-csi-s3` to see the charts.
 
-| Name             | Type         | Required | Default      | Description                                         |
-| :--------------- | :----------- | :------: | :----------- | :-------------------------------------------------- |
-| MINIO_ENDPOINT   | ConfigMap    | True     | -            | URL of the targeting minio instance. Https will automatically enable TLS |
-| MINIO_REGION     | ConfigMap    | False    | us-east-1    | S3 region of the bucket. For compatibility only. Take no effekt for minio |
-| MINIO_BUCKET_PREFIX | ConfigMap | False    | ""           | prefix for each bucket name. The bucket name will be equal to volume id 'pvc-UUID' |
-| MINIO_ACCESSKEY  | Secret | True | - | Equal to AWS_ACCESS_KEY_ID |
-| MINIO_SECRETKEY | Secret | True | - | Equal to AWS_SECRET_ACCESS_KEY |
-| NAMESPACE | Env | True | "" | Namespace where is loading the configmap and secret from |
-| CONFIGMAP_NAME | Env | True | "" | Name of the config map |
-| SECRET_NAME | Env | True | "" | Name of the secret |
+#### Install the chart
+
+To install the minio-csi-s3 chart (Pattern: chartname repo-alias/chartname):
+
+`helm install my-minio-csi-s3 minio-csi-s3/minio-csi-s3`
+
+#### Uninstallation
+
+To uninstall/delete `my-minio-csi-s3` deployment:
+
+`helm uninstall my-minio-csi-s3`
+
+#### Configuration
+The following table lists the configurable parameter of the minio-csi-s3 chart and the default values.
+
+| Parameter           | Description                                           | Default           |
+|---------------------|-------------------------------------------------------|-------------------|
+| version             | Application version which can be overwritten          | Chart.AppVersion  |
+| verbose             | Level of verbosity of the container                   | 0                 |
+| nameOverride        | Name of the resource bundle to overwrite the default  | minio-csi-s3      |
+| **S3**              | | |
+| s3.endpoint         | FQDN to the minio/aistor instance (e.g. http://localhost:9000) | - |
+| s3.region           | Takes no effect for minio/aistor | us-east-1 |
+| s3.bucketPrefix     | String which will be prefixed to the volumnename      | - |
+| **Namespace**       | | |
+| namespace.create    | Boolean to define if the space should be created or not | false |
+| namespace.name      | Name of target namespace if it will be differs from Release namespace | Release.Namespace |
 
 ### Manual installation
 
@@ -114,13 +130,28 @@ data:
   MINIO_ENDPOINT: "https://minio.mydomain.com"
 ```
 
-#### 3. Deploy the driver
+#### 3. Configuration
+
+The driver will load the configmap and secret via the kubernetes api and requires related permissions to be able to access the kubernetes resources
+
+| Name             | Type         | Required | Default      | Description                                         |
+| :--------------- | :----------- | :------: | :----------- | :-------------------------------------------------- |
+| MINIO_ENDPOINT   | ConfigMap    | True     | -            | URL of the targeting minio instance. Https will automatically enable TLS |
+| MINIO_REGION     | ConfigMap    | False    | us-east-1    | S3 region of the bucket. For compatibility only. Take no effekt for minio |
+| MINIO_BUCKET_PREFIX | ConfigMap | False    | ""           | prefix for each bucket name. The bucket name will be equal to volume id 'pvc-UUID' |
+| MINIO_ACCESSKEY  | Secret | True | - | Equal to AWS_ACCESS_KEY_ID |
+| MINIO_SECRETKEY | Secret | True | - | Equal to AWS_SECRET_ACCESS_KEY |
+| NAMESPACE | Env | True | "" | Namespace where is loading the configmap and secret from |
+| CONFIGMAP_NAME | Env | True | "" | Name of the config map |
+| SECRET_NAME | Env | True | "" | Name of the secret |
+
+#### 4. Deploy the driver
 
 ```bash
 kubectl apply -k ./k8s
 ```
 
-##### Upgrading
+## Upgrading
 
 If you're upgrading from yandex-cloud/k8s-csi-s3 - delete all resources:
 - Deployment
@@ -139,7 +170,7 @@ Migrate Config and Secrets
 kubectl create -f examples/storageclass.yaml
 ```
 
-#### 4. Test the S3 driver
+## 4. Test the S3 driver
 
 1. Create a pvc using the new storage class:
 

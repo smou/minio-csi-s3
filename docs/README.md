@@ -12,7 +12,7 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 
 ### Add Helm repository
 
-`helm repo add minio-csi-s3 https://smou.github.io/charts`
+`helm repo add minio-csi-s3 https://smou.github.io/k8s-csi-s3`
 
 If you had already added this repo earlier, run `helm repo update` to retrieve
 the latest versions of the packages.  You can then run `helm search repo

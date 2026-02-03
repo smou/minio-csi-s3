@@ -22,7 +22,7 @@ spec:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
           effect: "NoSchedule"
-      serviceAccountName: csi-s3
+      serviceAccountName: {{ include "driver.serviceaccount.name" .}}
       containers:
         - name: csi-s3
           image: {{ include "driver.image" .}}
