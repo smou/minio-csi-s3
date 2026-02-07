@@ -72,7 +72,7 @@ spec:
             - name: CSI_ADDRESS
               value: /csi/csi.sock
             - name: REGISTRATION_PATH
-              value: /var/lib/kubelet/plugins/minio.s3.csi/csi.sock
+              value: /var/lib/kubelet/plugins/minio.csi.s3/csi.sock
             - name: KUBE_NODE_NAME
               valueFrom:
                 fieldRef:
@@ -88,7 +88,7 @@ spec:
       volumes:
         - name: socket-dir
           hostPath:
-            path: /var/lib/kubelet/plugins/minio.s3.csi/
+            path: /var/lib/kubelet/plugins/minio.csi.s3/
             type: DirectoryOrCreate
         - name: registration-dir
           hostPath:

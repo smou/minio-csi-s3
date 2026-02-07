@@ -10,14 +10,14 @@ RUN wget -q https://s3.amazonaws.com/mountpoint-s3-release/${MOUNTPOINT_VERSION}
 
 FROM --platform=$BUILDPLATFORM public.ecr.aws/eks-distro-build-tooling/golang:1.25.5 as builder
 ARG TARGETARCH
-WORKDIR /minio-s3-csi-driver
+WORKDIR /minio-csi-s3-driver
 COPY . .
 RUN make
 
 FROM --platform=$TARGETPLATFORM public.ecr.aws/eks-distro-build-tooling/eks-distro-minimal-base-csi:latest
 LABEL maintainers="Christopher Schütze <https://github.com/smou>"
 LABEL description="minio-csi-s3 slim image"
-COPY --from=builder /minio-s3-csi-driver/_output/s3driver /usr/local/bin/
+COPY --from=builder /minio-csi-s3-driver/_output/s3driver /usr/local/bin/
 COPY --from=mountpoint /mountpoint-s3/bin/mount-s3 /usr/local/bin/
 COPY --from=mountpoint /lib64/libfuse.so.2 /lib64/libfuse.so.2
 RUN mkdir -p /run/csi && \
