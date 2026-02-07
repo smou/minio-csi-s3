@@ -29,4 +29,4 @@ jobs:
       with:
         push: true
         context: .
-        tags: cshoch3/k8s-csi-s3-minio:1.0.0        
+        tags: cshoch3/k8s-csi-s3-minio:1.0.1        
