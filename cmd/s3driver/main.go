@@ -36,9 +36,10 @@ func init() {
 }
 
 var (
-	endpoint    = flag.String("endpoint", "unix://csi/csi.sock", "CSI endpoint")
-	nodeID      = flag.String("nodeid", "controller", "kubernetes node id")
-	mountBinary = flag.String("mountBinary", "/usr/local/bin/mount-s3", "s3 mount binary path")
+	endpoint      = flag.String("endpoint", "unix://csi/csi.sock", "CSI endpoint")
+	nodeID        = flag.String("nodeid", "controller", "kubernetes node id")
+	mountBinaryS3 = flag.String("mountBinary", "/usr/local/bin/mount-s3", "s3 mount binary path")
+	mountBinary   = flag.String("mountBinary", "/usr/bin/mount", "unix mount binary path")
 )
 
 func main() {
@@ -61,6 +62,7 @@ func main() {
 	}
 	config.Endpoint = *endpoint
 	config.NodeID = *nodeID
+	config.MountBinaryS3 = *mountBinaryS3
 	config.MountBinary = *mountBinary
 	if err := preflightChecks(config); err != nil {
 		log.Fatalf("Preflight checks failed: %v", err)
@@ -84,13 +86,22 @@ func runDriver(config *config.DriverConfig, ctx context.Context) {
 }
 
 func preflightChecks(config *config.DriverConfig) error {
+	if config.MountBinaryS3 != "" {
+		if _, err := os.Stat(config.MountBinaryS3); os.IsNotExist(err) {
+			return fmt.Errorf("s3 mount binary not found in $PATH at %s: %v", config.MountBinaryS3, err)
+		}
+	} else {
+		if _, err := exec.LookPath("mount-s3"); os.IsNotExist(err) {
+			return fmt.Errorf("mount-s3 binary not found in $PATH: %v", err)
+		}
+	}
 	if config.MountBinary != "" {
 		if _, err := os.Stat(config.MountBinary); os.IsNotExist(err) {
 			return fmt.Errorf("mount binary not found in $PATH at %s: %v", config.MountBinary, err)
 		}
 	} else {
-		if _, err := exec.LookPath("mount-s3"); os.IsNotExist(err) {
-			return fmt.Errorf("mount-s3 binary not found in $PATH: %v", err)
+		if _, err := exec.LookPath("mount"); os.IsNotExist(err) {
+			return fmt.Errorf("mount binary not found in $PATH: %v", err)
 		}
 	}
 	return nil

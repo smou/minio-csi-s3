@@ -13,7 +13,7 @@
 # limitations under the License.
 
 SHELL = /bin/bash
-VERSION=1.0.1
+VERSION=1.1.0
 NAME=minio.csi.s3
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")

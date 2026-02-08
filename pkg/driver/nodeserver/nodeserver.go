@@ -22,6 +22,7 @@ type NodeServer struct {
 	csi.UnimplementedNodeServer
 
 	mount mount.Provider
+	s3    mount.Provider
 
 	NodeID    string
 	Endpoint  string
@@ -29,9 +30,10 @@ type NodeServer struct {
 	SecretKey string
 }
 
-func NewNodeServer(config *config.DriverConfig, mountProvider mount.Provider) *NodeServer {
+func NewNodeServer(config *config.DriverConfig, mountProvider mount.Provider, s3MountProvider mount.Provider) *NodeServer {
 	return &NodeServer{
 		mount:     mountProvider,
+		s3:        s3MountProvider,
 		NodeID:    config.NodeID,
 		Endpoint:  config.S3.Endpoint,
 		AccessKey: config.S3Credentials.AccessKey,
@@ -68,6 +70,9 @@ func (n *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublish
 	if req.GetTargetPath() == "" {
 		return nil, status.Error(codes.InvalidArgument, "targetPath missing")
 	}
+	if req.GetStagingTargetPath() == "" {
+		return nil, status.Error(codes.InvalidArgument, "staging targetPath missing")
+	}
 
 	if req.GetVolumeContext() == nil {
 		return nil, status.Error(codes.InvalidArgument, "volumeContext missing")
@@ -84,29 +89,19 @@ func (n *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublish
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
-	if n.AccessKey == "" || n.SecretKey == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid credentials secret")
-	}
-
 	region := ""
 	if req.GetVolumeContext() != nil {
 		region = req.VolumeContext["region"]
 	}
 
-	gid := getGIDFromVolumeCapability(req.GetVolumeCapability())
-
 	mreq := mount.MountRequest{
-		TargetPath: req.TargetPath,
+		StagingTargetPath: req.StagingTargetPath,
+		TargetPath:        req.TargetPath,
 
-		Bucket:   req.GetVolumeId(),
-		Endpoint: n.Endpoint,
-		Region:   region,
-
-		AccessKey: n.AccessKey,
-		SecretKey: n.SecretKey,
+		Bucket: req.GetVolumeId(),
+		Region: region,
 
 		ReadOnly: false,
-		GID:      gid,
 		Options:  req.VolumeContext,
 	}
 
@@ -139,6 +134,11 @@ func (n *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpub
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
+/*
+Mount s3 to staging path, which will be used for publish volume.
+Staging path is used to prepare the volume before it is published to the target path.
+This allows for better performance and reliability when mounting the volume to the target path.
+*/
 func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	klog.V(4).Infof("NodeStageVolume: called with args %+v", req)
 	if req.GetStagingTargetPath() == "" {
@@ -148,7 +148,7 @@ func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolu
 		return nil, status.Error(codes.InvalidArgument, "volumeId missing")
 	}
 
-	mounted, err := n.mount.IsMounted(req.StagingTargetPath)
+	mounted, err := n.s3.IsMounted(req.StagingTargetPath)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
@@ -168,7 +168,8 @@ func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolu
 	gid := getGIDFromVolumeCapability(req.GetVolumeCapability())
 
 	mreq := mount.MountRequest{
-		TargetPath: req.StagingTargetPath,
+		StagingTargetPath: req.StagingTargetPath,
+		TargetPath:        req.StagingTargetPath,
 
 		Bucket:   req.VolumeId,
 		Endpoint: n.Endpoint,
@@ -182,7 +183,7 @@ func (n *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolu
 		Options:  req.VolumeContext,
 	}
 
-	if err := n.mount.Mount(ctx, mreq); err != nil {
+	if err := n.s3.Mount(ctx, mreq); err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 
@@ -197,7 +198,7 @@ func (n *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstage
 		return &csi.NodeUnstageVolumeResponse{}, nil
 	}
 
-	mounted, err := n.mount.IsMounted(req.StagingTargetPath)
+	mounted, err := n.s3.IsMounted(req.StagingTargetPath)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
@@ -205,7 +206,7 @@ func (n *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstage
 		return &csi.NodeUnstageVolumeResponse{}, nil
 	}
 
-	if err := n.mount.Unmount(ctx, req.StagingTargetPath); err != nil {
+	if err := n.s3.Unmount(ctx, req.StagingTargetPath); err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 

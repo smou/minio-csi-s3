@@ -22,7 +22,6 @@ spec:
           args:
             - "--endpoint=unix://$(CSI_ADDRESS)"
             - "--nodeid=$(NODE_ID)"
-            - "--mountBinary=/usr/local/bin/mount-s3"
             - {{ include "log.level" .}}
           env:
             - name: CSI_ADDRESS

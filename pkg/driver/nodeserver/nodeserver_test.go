@@ -25,7 +25,7 @@ func newTestNodeServer(mount *FakeMountProvider) *nodeserver.NodeServer {
 		},
 	}
 
-	return nodeserver.NewNodeServer(cfg, mount)
+	return nodeserver.NewNodeServer(cfg, mount, mount)
 }
 
 func TestNodeGetInfo(t *testing.T) {
@@ -49,8 +49,9 @@ func TestNodePublishVolume_Success(t *testing.T) {
 	ns := newTestNodeServer(mount)
 
 	req := &csi.NodePublishVolumeRequest{
-		VolumeId:   "test-bucket",
-		TargetPath: "/mnt/test",
+		VolumeId:          "test-bucket",
+		StagingTargetPath: "/mnt/stage",
+		TargetPath:        "/mnt/test",
 		VolumeContext: map[string]string{
 			"region": "us-east-1",
 		},
@@ -63,8 +64,6 @@ func TestNodePublishVolume_Success(t *testing.T) {
 	mounted, _ := mount.IsMounted("/mnt/test")
 	assert.True(t, mounted)
 
-	assert.Equal(t, "test-bucket", mount.lastMount.Bucket)
-	assert.Equal(t, "https://minio.local", mount.lastMount.Endpoint)
 }
 
 func TestNodePublishVolume_Idempotent(t *testing.T) {
@@ -73,12 +72,14 @@ func TestNodePublishVolume_Idempotent(t *testing.T) {
 
 	// Vorab mounten
 	_ = mountProvider.Mount(context.Background(), mount.MountRequest{
-		TargetPath: "/mnt/test",
+		StagingTargetPath: "/mnt/stage",
+		TargetPath:        "/mnt/test",
 	})
 
 	req := &csi.NodePublishVolumeRequest{
-		VolumeId:   "test-bucket",
-		TargetPath: "/mnt/test",
+		VolumeId:          "test-bucket",
+		StagingTargetPath: "/mnt/stage",
+		TargetPath:        "/mnt/test",
 		VolumeContext: map[string]string{
 			"region": "us-east-1",
 		},
@@ -89,16 +90,9 @@ func TestNodePublishVolume_Idempotent(t *testing.T) {
 	assert.NotNil(t, resp)
 }
 
-func TestNodePublishVolume_MissingCredentials(t *testing.T) {
+func TestNodePublishVolume_MissingStageTargetPath(t *testing.T) {
 	mount := NewFakeMountProvider()
-
-	cfg := &config.DriverConfig{
-		NodeID: "node-1",
-		S3: config.S3Config{
-			Endpoint: "https://minio.local",
-		},
-	}
-	ns := nodeserver.NewNodeServer(cfg, mount)
+	ns := newTestNodeServer(mount)
 
 	req := &csi.NodePublishVolumeRequest{
 		VolumeId:   "test-bucket",

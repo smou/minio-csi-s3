@@ -1,6 +1,12 @@
 package mount
 
-import "context"
+import (
+	"context"
+	"os"
+	"os/exec"
+)
+
+var ExecCommand = exec.CommandContext
 
 type Provider interface {
 	// Mount mountet das Volume auf den Zielpfad
@@ -14,7 +20,8 @@ type Provider interface {
 }
 
 type MountRequest struct {
-	TargetPath string
+	StagingTargetPath string
+	TargetPath        string
 
 	Bucket   string
 	Endpoint string
@@ -27,4 +34,8 @@ type MountRequest struct {
 	GID      string
 
 	Options map[string]string
+}
+
+func ensureDir(path string) error {
+	return os.MkdirAll(path, 0755)
 }

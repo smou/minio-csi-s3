@@ -4,32 +4,29 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"k8s.io/klog/v2"
 	"k8s.io/mount-utils"
 )
 
-var ExecCommand = exec.CommandContext
-
-type MountUtilsProvider struct {
+type S3MountUtil struct {
 	Mounter mount.Interface
 	// Pfad zum S3-Mount Binary (z. B. mountpoint-s3)
 	Binary string
 }
 
-func NewMountUtilsProvider(binary string) *MountUtilsProvider {
-	klog.Infof("Init Mounter at %s", binary)
-	return &MountUtilsProvider{
+func NewS3MountUtil(binary string) *S3MountUtil {
+	klog.Infof("Init S3 Mounter at %s", binary)
+	return &S3MountUtil{
 		Mounter: mount.New(""),
 		Binary:  binary,
 	}
 }
 
-func (p *MountUtilsProvider) IsMounted(targetPath string) (bool, error) {
-	klog.V(4).Infof("k8s-Mountutil IsMounted: called with targetPath %s", targetPath)
+func (p *S3MountUtil) IsMounted(targetPath string) (bool, error) {
+	klog.V(4).Infof("S3 Mountutil IsMounted: called with targetPath %s", targetPath)
 	if _, err := os.Stat(targetPath); os.IsNotExist(err) {
-		klog.V(4).ErrorS(err, "k8s-Mountutil IsMounted: targetPath %s does not exist", targetPath)
+		klog.ErrorS(err, "S3 Mountutil IsMounted: targetPath %s does not exist", targetPath)
 		return false, nil
 	}
 
@@ -41,8 +38,8 @@ func (p *MountUtilsProvider) IsMounted(targetPath string) (bool, error) {
 	return !notMounted, nil
 }
 
-func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error {
-	klog.V(4).Infof("k8s-Mountutil Mount: called with args %+v", req)
+func (p *S3MountUtil) Mount(ctx context.Context, req MountRequest) error {
+	klog.V(4).Infof("S3 Mountutil Mount: called with args %+v", req)
 	if err := ensureDir(req.TargetPath); err != nil {
 		return err
 	}
@@ -103,8 +100,8 @@ func (p *MountUtilsProvider) Mount(ctx context.Context, req MountRequest) error 
 	return nil
 }
 
-func (p *MountUtilsProvider) Unmount(ctx context.Context, targetPath string) error {
-	klog.V(4).Infof("k8s-Mountutil Unmount: called with targetPath %s", targetPath)
+func (p *S3MountUtil) Unmount(ctx context.Context, targetPath string) error {
+	klog.V(4).Infof("S3 Mountutil Unmount: called with targetPath %s", targetPath)
 	mounted, err := p.IsMounted(targetPath)
 	if err != nil {
 		return err
@@ -114,8 +111,4 @@ func (p *MountUtilsProvider) Unmount(ctx context.Context, targetPath string) err
 	}
 
 	return p.Mounter.Unmount(targetPath)
-}
-
-func ensureDir(path string) error {
-	return os.MkdirAll(path, 0755)
 }

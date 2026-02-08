@@ -29,7 +29,7 @@ func TestIsMounted(t *testing.T) {
 	require.NoError(t, err)
 
 	mounter := NewFakeMounter()
-	p := &provider.MountUtilsProvider{
+	p := &provider.S3MountUtil{
 		Mounter: mounter,
 		Binary:  "dummy",
 	}
@@ -51,7 +51,7 @@ func TestMount_Success(t *testing.T) {
 	provider.ExecCommand = fakeExecCommand(true)
 
 	mounter := NewFakeMounter()
-	p := &provider.MountUtilsProvider{
+	p := &provider.S3MountUtil{
 		Mounter: mounter,
 		Binary:  "mountpoint-s3",
 	}
@@ -77,7 +77,7 @@ func TestMount_Idempotent(t *testing.T) {
 	mounter := NewFakeMounter()
 	mounter.mounted["/tmp/mnt"] = true
 
-	p := &provider.MountUtilsProvider{
+	p := &provider.S3MountUtil{
 		Mounter: mounter,
 		Binary:  "mountpoint-s3",
 	}
@@ -94,7 +94,7 @@ func TestMount_Failure(t *testing.T) {
 	provider.ExecCommand = fakeExecCommand(false)
 
 	mounter := NewFakeMounter()
-	p := &provider.MountUtilsProvider{
+	p := &provider.S3MountUtil{
 		Mounter: mounter,
 		Binary:  "mountpoint-s3",
 	}
@@ -110,7 +110,7 @@ func TestUnmount(t *testing.T) {
 	mounter := NewFakeMounter()
 	mounter.mounted["/mnt/test"] = true
 
-	p := &provider.MountUtilsProvider{
+	p := &provider.S3MountUtil{
 		Mounter: mounter,
 	}
 

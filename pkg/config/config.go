@@ -28,6 +28,7 @@ const (
 type DriverConfig struct {
 	Endpoint          string
 	NodeID            string
+	MountBinaryS3     string
 	MountBinary       string
 	KubernetesVersion string
 	S3                S3Config

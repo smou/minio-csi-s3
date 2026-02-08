@@ -6,4 +6,4 @@ resources:
   - csidriver.yaml
 images:
   - name: cshoch3/k8s-csi-s3-minio
-    newTag: 1.0.0-RC-722ec39e2cb9319a3f3082b468821109bba9e7cb
+    newTag: 1.1.0

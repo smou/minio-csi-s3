@@ -111,7 +111,8 @@ func (d *Driver) Run() error {
 	// 	}
 	// }
 	klog.Infof("Initializing components...")
-	mounter := mount.NewMountUtilsProvider(d.Config.MountBinary)
+	s3Mounter := mount.NewS3MountUtil(d.Config.MountBinaryS3)
+	unixMounter := mount.NewUnixMountUtil(d.Config.MountBinary)
 	store, err := minio.NewStore(&store.StoreConfig{
 		EndpointURL: d.Config.S3.Endpoint,
 		Region:      d.Config.S3.Region,
@@ -123,7 +124,7 @@ func (d *Driver) Run() error {
 	}
 	identityServer := NewIdentityServer(d.Config.Meta)
 	controllerServer := NewControllerServer(d.Config, store)
-	nodeServer := nodeserver.NewNodeServer(d.Config, mounter)
+	nodeServer := nodeserver.NewNodeServer(d.Config, unixMounter, s3Mounter)
 
 	logErr := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		resp, err := handler(ctx, req)
