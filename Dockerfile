@@ -1,14 +1,14 @@
 ARG $TARGETPLATFORM=linux/amd64
 
 FROM --platform=$TARGETPLATFORM public.ecr.aws/amazonlinux/amazonlinux:2 AS mountpoint
-ARG MOUNTPOINT_VERSION=1.22.0
+ARG MOUNTPOINT_VERSION=1.22.2
 ARG TARGETARCH=x86_64
 RUN yum install -y wget gzip tar fuse-libs binutil patchelf
 RUN wget -q https://s3.amazonaws.com/mountpoint-s3-release/${MOUNTPOINT_VERSION}/${TARGETARCH}/mount-s3-${MOUNTPOINT_VERSION}-${TARGETARCH}.tar.gz && \
     mkdir -p /mountpoint-s3 && \
     tar -xvzf mount-s3-${MOUNTPOINT_VERSION}-${TARGETARCH}.tar.gz -C /mountpoint-s3
 
-FROM --platform=$BUILDPLATFORM public.ecr.aws/eks-distro-build-tooling/golang:1.25.5 as builder
+FROM --platform=$BUILDPLATFORM public.ecr.aws/eks-distro-build-tooling/golang:1.26.2 as builder
 ARG TARGETARCH
 WORKDIR /minio-csi-s3-driver
 COPY . .

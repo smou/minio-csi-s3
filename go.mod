@@ -1,6 +1,6 @@
 module github.com/smou/k8s-csi-s3
 
-go 1.25.5
+go 1.26.2
 
 require (
 	github.com/container-storage-interface/spec v1.12.0
